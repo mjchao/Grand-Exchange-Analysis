@@ -16,8 +16,8 @@ is a list of all data of which this object keeps track:
 * year - the year values of the time series data, stored as a string of length 4
 * month - the month values of the time series data, stored as a string of length 2
 * day - the day values of the time series data, stored as a string of length 2
-* daily - the daily prices of the time series data
-* average - the average prices of the time series data
+* daily - the daily integer prices of the time series data
+* average - the average integer prices of the time series data
 
 Given an index i within range, we can say that on the date
 year[i]/month[i]/day[i], the daily price of <name> was daily[i] and the
@@ -36,8 +36,8 @@ class CommodityPriceData( object ):
     def __str__( self ):
         rtn = "Price data for " + self.name
         for i in range( 0 , len( self.year ) ):
-            rtn += "\n[" + str( self.year[ i ] ) + "/" + str( self.month[ i ] ) + \
-                "/" + str( self.day[ i ] ) + ", " + str( self.daily[ i ] ) + \
+            rtn += "\n[" + self.year[ i ] + "/" + self.month[ i ] + \
+                "/" + self.day[ i ] + ", " + str( self.daily[ i ] ) + \
                 ", " + str( self.average[ i ] ) + "]";
         return rtn
         
@@ -101,12 +101,9 @@ class PriceCrawler( object ):
             #we just add 12 hours to be safe. We are only interested in dates
             #and the actual hour of day does not matter to us.
             dateValues = re.findall( r'\d+' , str(datetime.datetime.fromtimestamp( int(timestamp)/1000 + 43200 )) )
-            years.append( dateValues[ 0 ] )
-            months.append( dateValues[ 1 ] )
-            
-            #have to add an extra 1 because Jagex is GMT and I am in EST
-            #so their start of day is actually 1 day before for me
-            days.append( dateValues[ 2 ] )
+            years.append( str( dateValues[ 0 ] ) )
+            months.append( str( dateValues[ 1 ] ) )
+            days.append( str( dateValues[ 2 ] ) )
             prices.append( int(priceData[ i+1 ]) )
             averages.append( int(averageData[ i+1 ]) )
 
@@ -132,7 +129,7 @@ class PriceCrawler( object ):
             return None
         
         #we can find the name in the title of the webpage.
-        name = re.search( r'(?<=<title>)(.*)(?= - Grand Exchange)' , html ).group( 0 )
+        name = str( re.search( r'(?<=<title>)(.*)(?= - Grand Exchange)' , html ).group( 0 ) )
         
         #and the price data is always pushed to the graphs on the webpage
         #with the command "average180.push( ... )" so we are just interested
@@ -153,9 +150,9 @@ class PriceCrawler( object ):
             #a month and 2 digits in a day. If we converted them to integers,
             #we would lose a digit sometimes - e.g. 01 would be converted to 1
             #and we'd lose consistency.
-            years.append( numbers[ 1 ] )
-            months.append( numbers[ 2 ] )
-            days.append( numbers[ 3 ] )
+            years.append( str( numbers[ 1 ] ) )
+            months.append( str( numbers[ 2 ] ) )
+            days.append( str( numbers[ 3 ] ) )
             
             #prices, on the other hand, can be converted to integers because
             #all commodities will always cost an integer number of coins.
@@ -165,10 +162,22 @@ class PriceCrawler( object ):
         return CommodityPriceData( name , years , months , days , prices , averages )       
         
 def main():
-    #print datetime.datetime.fromtimestamp( int("1424908800") + 18000 )
-    test = PriceCrawler.get_price_data_from_json( "Mithril ore" , 447 )    
+    test = PriceCrawler.get_price_data_from_json( "Mithril ore" , 447 ) 
     test2 = PriceCrawler.get_price_data_from_html( 447 )
     assert test == test2
+    
+    #type checks
+    assert isinstance( test.year[ 0 ] , str )
+    assert isinstance( test.month[ 0 ] , str )
+    assert isinstance( test.day[ 0 ] , str )
+    assert isinstance( test.daily[ 0 ] , int )
+    assert isinstance( test.average[ 0 ] , int )
+    assert isinstance( test2.year[ 0 ] , str )
+    assert isinstance( test2.month[ 0 ] , str )
+    assert isinstance( test2.day[ 0 ] , str )
+    assert isinstance( test2.daily[ 0 ] , int )
+    assert isinstance( test2.average[ 0 ] , int )
+    
     print "Regression testing for price_crawler.py passed"
     
 if __name__ == "__main__" : main()
