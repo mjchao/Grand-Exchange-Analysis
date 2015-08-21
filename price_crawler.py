@@ -25,6 +25,21 @@ average 180-day price of <name> was average[i].
 '''
 class CommodityPriceData( object ):
     
+    '''
+    Creates a CommodityPriceData object with the given time series data.
+    
+    @param name - the name of the commodity, as a string
+    @param year - the year values of the time series data, as a list of strings
+    of length 4
+    @param month - the month values of the time series data, as a list of strings
+    of length 2
+    @param day - the day values of the time series data, as a list of strings
+    of length 2
+    @param daily - the daily price values of the time series data, as a list
+    of integers
+    @param average - the average 180-day price values of the time series data,
+    as a list of integers
+    '''
     def __init__( self , name , year , month , day , daily , average ):
         self.name = name
         self.year = year
@@ -58,8 +73,8 @@ class PriceCrawler( object ):
     Gets price data for a given commodity from json provided by the
     Grand Exchange API.
     
-    @param name - the name of the commodity.
-    @param objectId - the Grand Exchange object ID for the commodity.
+    @param name - the name of the commodity, as a string.
+    @param objectId - the Grand Exchange object ID for the commodity, as an integer.
     @return - a CommodityPriceData object that stores all the time 
     series data for the daily and average prices of the commodity.
     None is returned if the object ID was invalid.
@@ -114,7 +129,7 @@ class PriceCrawler( object ):
     website. The name of the commodity is also automatically determined from
     the HTML.
     
-    @param objectId - the Grand Exchange object ID of a commodity.
+    @param objectId - the Grand Exchange object ID of a commodity, as an integer.
     @return - a CommodityPriceData object that stores time series data
     for the daily and average price of a commodity.
     None is returned if the given object ID was invalid.
