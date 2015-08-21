@@ -32,8 +32,8 @@ class MonthData( object ):
     '''
     Determines the number of days in a given month.
     
-    @param month - the month as an integer
-    @param year - the year as an integer. This will be used if the month is a 
+    @param month - a month, as an integer
+    @param year - a year, as an integer. This will be used if the month is a 
     February which will have 28 or 29 days, depending on if it is a leap year.
     @return - the number of days in the given month as an integer
     '''
@@ -54,7 +54,7 @@ class MonthData( object ):
     Formats an integer month to be a string with length 2. This is just
     for consistency issues.
     
-    @param month - a month as an integer
+    @param month - a month, as an integer
     @return - the given month as a string with length 2
     '''
     @staticmethod
@@ -69,7 +69,7 @@ class MonthData( object ):
     Formats an integer day to be a string with length 2. This is just for
     consistency issues.
     
-    @param day - a day as an integer
+    @param day - a day, as an integer
     @return - the given day as a string with length 2
     '''            
     @staticmethod
@@ -138,8 +138,8 @@ class MonthData( object ):
     where the daily price on day 1 was 45, and the average price on day 1
     was 58, and so on...
     
-    @return - a list of comma-separated-values that is the price data
-    of this month.
+    @return - the string representation of a list of comma-separated-values 
+    that is the price data of a commodity for this month.
     '''
     def __str__( self ):
         
@@ -156,7 +156,10 @@ class MonthData( object ):
                 "," + str( self.data[ i ][ 1 ] )
         
         return rtn
-        
+
+'''
+Provides functions for reading in price data.
+'''     
 class PriceReader( object ):
     
     '''
@@ -189,7 +192,7 @@ class PriceReader( object ):
         return rtn
         
 '''
-Provides functions for Writing daily and average price data to the 
+Provides functions for writing daily and average price data to the 
 appropriate files. 
 
 The structure of the filesystem is as follows:
@@ -248,8 +251,8 @@ class PriceWriter( object ):
     '''
     Writes the month data for a given commodity to the appropriate file.
     
-    @param monthData - the month data to be saved
-    @param commodity - the name of the commodity
+    @param monthData - the MonthData object to be saved
+    @param commodity - the name of the commodity as a string
     '''
     @staticmethod
     def write_month_data_to_file( monthData , commodity ):
@@ -282,7 +285,9 @@ def main():
     priceData = PriceCrawler.get_price_data_from_json( "Mithril ore" , 447 )
     PriceWriter.save_data( priceData )
     
+    priceData = PriceCrawler.get_price_data_from_json( "Mithril bar" , 2359 )
+    PriceWriter.save_data( priceData )
+    
     print "Regression testing for price_writer.py passed."
-    pass
 
 if __name__ == "__main__" : main()
