@@ -288,6 +288,6 @@ def main():
     priceData = PriceCrawler.get_price_data_from_json( "Mithril bar" , 2359 )
     PriceWriter.save_data( priceData )
     
-    print "Regression testing for price_writer.py passed."
+    print "Regression testing for price_data_io.py passed."
 
 if __name__ == "__main__" : main()
