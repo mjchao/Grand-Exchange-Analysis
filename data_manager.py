@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from price_crawler import PriceCrawler
-from price_data_io import PriceWriter
+from price_data_io import PriceWriter, PriceReader , MonthData
 
 '''
 Provides functions for managing data. 
@@ -85,10 +85,40 @@ class DataManager( object ):
         id = objectId
         name = DataManager.idToName[ id ]
         DataManager.downloadDataByNameAndId( name , id )
-    
+        
+    @staticmethod
+    def getData( name , startMonth , startYear , endMonth , endYear ):
+        caseSensitiveName = DataManager.idToName[ DataManager.nameToId[ name.lower() ] ]
+        
+        rtn = []
+        currYear = startYear
+        currMonth = startMonth
+        while( currYear <= endYear ):
+            if ( currYear < endYear ):
+                while( currMonth <= 12 ):
+                    monthData = PriceReader.read_month_data( currMonth , currYear , caseSensitiveName )
+                    for day in range( 1 , len( monthData.data ) ):
+                        prices = monthData.get( day )
+                        if ( prices[ 0 ] != 0 and prices[ 1 ] != 0 ):
+                            rtn.append( (currYear , currMonth , day , prices[ 0 ] , prices[ 1 ] ) )
+                    currMonth = currMonth + 1
+            elif ( currYear == endYear ):
+                while( currMonth <= endMonth ):
+                    monthData = PriceReader.read_month_data( currMonth , currYear , name )
+                    for day in range( 1 , len( monthData.data ) ):
+                        prices = monthData.get( day )
+                        if ( prices[ 0 ] != 0 and prices[ 1 ] != 0 ):
+                            rtn.append( (currYear , currMonth , day , prices[ 0 ] , prices[ 1 ] ) )
+                    currMonth = currMonth + 1
+                
+            currYear = currYear + 1
+        
+        return rtn
     
 def main():
     DataManager.init()
-    DataManager.downloadDataByNames( "mithril ore" , "mithril bar" , "coal" , "iron ore" )
+    #DataManager.downloadDataByNames( "mithril ore" , "mithril bar" , "coal" , "iron ore" , "steel bar" )
+    test = DataManager.getData( "Mithril ore" , 8 , 2015 , 8 , 2015 )
+    print test
 
-if __name__ == "__main__" : main()
+if __name__ == "__main__" : main() 

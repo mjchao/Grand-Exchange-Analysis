@@ -165,12 +165,13 @@ class PriceReader( object ):
     '''
     Reads in price data for a given month and returns a MonthData object
     with all that data. If the data does not exist, then all the datapoints
-    will have daily price 0 and average price 0.
+    will have daily price 0 and average price 0. Note that the name of the
+    commodity is CASE SENSITIVE.
     
     @param month - the month of the price data to read, as an integer
     @param year - the year of the price data to read, as an integer
     @param commodity - the name of the commodity for which to look up price data,
-    as a string
+    as a string. This string is CASE SENSITIVE.
     @return - a MonthData object with all the price information for the
     given commodity during the given month and year time period.
     '''
@@ -182,7 +183,7 @@ class PriceReader( object ):
             file = open( dir + "/" + commodity + ".csv" , "r" )
             fin = csv.reader( file , delimiter="," )
             for data in fin :
-                rtn.set( int(data[ 0 ]) , data[ 1 ] , data[ 2 ] )
+                rtn.set( int(data[ 0 ]) , int(data[ 1 ]) , int(data[ 2 ]) )
         except IOError:
             
             #there is no data, so ignore the error and return default
