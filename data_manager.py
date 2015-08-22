@@ -32,14 +32,15 @@ class DataManager( object ):
             objName = pairing[ 0 ]
             objID = int( pairing[ 1 ] )
             DataManager.idToName[ objID ] = objName
-            DataManager.nameToId[ objName ] = objID
+            DataManager.nameToId[ objName.lower() ] = objID
             
     '''
     Downloads the most recent data for the commodity with the given name
-    and id. You must be sure that the data has been downloaded before you
-    can use it for analysis.
+    and id. The name IS CASE SENSITIVE and should appear with the same
+    capitalization as in the file price_data/item_ids. If you do not
+    know the correct capitalization, do not use this function!
     
-    @param name - the name of the commodity, as a string
+    @param name - the name of the commodity, as a string. It is CASE SENSITIVE!
     @param id - the object id of the commodity, as an integer
     '''
     @staticmethod
@@ -52,21 +53,30 @@ class DataManager( object ):
     
     '''
     Downloads the most recent data for the commodity with the given name.
-    You must be sure that the data has been downloaded before you can use
-    it for analysis.
-    
-    @param objectName - the name of the commodity, as a string
+
+    @param objectName - the name of the commodity, as a string. The name is
+    case insensitive
     '''    
     @staticmethod
     def downloadDataByName( objectName ):
-        name = objectName
+        name = objectName.lower()
         id = DataManager.nameToId[ name ]
-        DataManager.downloadDataByNameAndId( name , id )
+        caseSensitiveName = DataManager.idToName[ id ]
+        DataManager.downloadDataByNameAndId( caseSensitiveName , id )
+        
+    '''
+    Downloads the most recent data for all given commodities.
+    
+    @param names - a list of names (as strings) of commodities for which to 
+    download price data. The names are case insensitive.
+    '''
+    @staticmethod
+    def downloadDataByNames( *names ):
+        for name in names:
+            DataManager.downloadDataByName( name )
     
     '''
     Downloads the most recent data for the commodity with the given ID.
-    You must be sure that the data has been downloaded before you can use
-    it for analysis.
     
     @param objectId - the ID of the commodity, as an integer
     '''
@@ -79,6 +89,6 @@ class DataManager( object ):
     
 def main():
     DataManager.init()
-    DataManager.downloadDataById( 447 )
+    DataManager.downloadDataByNames( "mithril ore" , "mithril bar" , "coal" , "iron ore" )
 
 if __name__ == "__main__" : main()
