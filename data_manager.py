@@ -86,23 +86,48 @@ class DataManager( object ):
         name = DataManager.idToName[ id ]
         DataManager.downloadDataByNameAndId( name , id )
         
+    '''
+    Gets all price data for a given commodity starting at the given start
+    date and ending at the given end date. These dates are inclusive.
+    
+    @param name - the name of a commodity. This is a case insensitive string.
+    @param startMonth - the month of the start date, as an integer.
+    @param startYear - the year of the start date, as an integer.
+    @param endMonth - the month of the end date, as an integer.
+    @param endYear - the year of the end date, as an integer.
+    '''
     @staticmethod
     def get_data( name , startMonth , startYear , endMonth , endYear ):
         caseSensitiveName = DataManager.idToName[ DataManager.nameToId[ name.lower() ] ]
         
         rtn = []
+        
+        #iterate through month by month, year by year from the start to the
+        #end and add any nonzero datapoints to the list of data
         currYear = startYear
         currMonth = startMonth
         while( currYear <= endYear ):
+            
+            #if the current year is before the end year, then we just
+            #iterate through all months
             if ( currYear < endYear ):
                 while( currMonth <= 12 ):
                     monthData = PriceReader.read_month_data( currMonth , currYear , caseSensitiveName )
                     for day in range( 1 , len( monthData.data ) ):
                         prices = monthData.get( day )
+                        
+                        #we only add nonzero prices becauase prices of 0
+                        #means that there was no price data for that given date
                         if ( prices[ 0 ] != 0 and prices[ 1 ] != 0 ):
                             rtn.append( (currYear , currMonth , day , prices[ 0 ] , prices[ 1 ] ) )
                     currMonth = currMonth + 1
+                    
+                #have to reset the month back to 1 after we've gone through
+                #all 12 months in the current year
                 currMonth = 1
+                
+            #if the current year is the end year, then we can only iterate
+            #up to the end month
             elif ( currYear == endYear ):
                 while( currMonth <= endMonth ):
                     monthData = PriceReader.read_month_data( currMonth , currYear , name )
@@ -112,6 +137,7 @@ class DataManager( object ):
                             rtn.append( (currYear , currMonth , day , prices[ 0 ] , prices[ 1 ] ) )
                     currMonth = currMonth + 1
                 
+            #move on to the next year
             currYear = currYear + 1
         
         return rtn
@@ -119,7 +145,7 @@ class DataManager( object ):
 def main():
     DataManager.init()
     #DataManager.downloadDataByNames( "mithril ore" , "mithril bar" , "coal" , "iron ore" , "steel bar" )
-    test = DataManager.get_data( "Mithril bar" , 12 , 2014 , 8 , 2015 )
+    test = DataManager.get_data( "Mithril bar" , 12 , 2014 , 12 , 2015 )
     print test
 
 if __name__ == "__main__" : main() 
