@@ -23,6 +23,10 @@ class DataManager( object ):
     '''
     nameToId = {}
     
+    '''
+    Initializes the DataManager. You cannot perform any data operations
+    using the DataManager if init() has not yet been called.
+    '''
     @staticmethod
     def init():
         f = open( "price_data/item_ids" )
