@@ -87,7 +87,7 @@ class DataManager( object ):
         DataManager.downloadDataByNameAndId( name , id )
         
     @staticmethod
-    def getData( name , startMonth , startYear , endMonth , endYear ):
+    def get_data( name , startMonth , startYear , endMonth , endYear ):
         caseSensitiveName = DataManager.idToName[ DataManager.nameToId[ name.lower() ] ]
         
         rtn = []
@@ -102,6 +102,7 @@ class DataManager( object ):
                         if ( prices[ 0 ] != 0 and prices[ 1 ] != 0 ):
                             rtn.append( (currYear , currMonth , day , prices[ 0 ] , prices[ 1 ] ) )
                     currMonth = currMonth + 1
+                currMonth = 1
             elif ( currYear == endYear ):
                 while( currMonth <= endMonth ):
                     monthData = PriceReader.read_month_data( currMonth , currYear , name )
@@ -118,7 +119,7 @@ class DataManager( object ):
 def main():
     DataManager.init()
     #DataManager.downloadDataByNames( "mithril ore" , "mithril bar" , "coal" , "iron ore" , "steel bar" )
-    test = DataManager.getData( "Mithril ore" , 8 , 2015 , 8 , 2015 )
+    test = DataManager.get_data( "Mithril bar" , 12 , 2014 , 8 , 2015 )
     print test
 
 if __name__ == "__main__" : main() 
