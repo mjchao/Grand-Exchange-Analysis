@@ -263,8 +263,8 @@ class PriceCrawler( object ):
         if ( "Sorry, there was a problem with your request." in html ):
             if ( "You've made too many requests recently." in html and \
                     "As a result, your IP address has been temporarily blocked. Please try again later." in html ):
-                print "Computer IP has been blocked. Trying again in 30 seconds..."
-                sleep( 30 )
+                print "Computer IP has been blocked. Trying again in 15 seconds..."
+                sleep( 15 )
                 return PriceCrawler.get_price_data_from_html( objectId )
             return None
         

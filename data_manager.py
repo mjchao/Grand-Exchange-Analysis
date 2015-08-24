@@ -60,7 +60,8 @@ class IDManager( object ):
                 print str( i ) + " was not a valid id"
                 
             #let's not get blocked for too many requests
-            sleepInterval = randint( 1 , 3 )
+            sleepInterval = randint( 1 , 2 )
+            sleepInterval = 2
             print "Sleeping " + str( sleepInterval )
             sleep( sleepInterval )
             
@@ -212,7 +213,7 @@ def main():
     #DataManager.download_data_by_names( "mithril ore" , "mithril bar" , "coal" , "iron ore" , "steel bar" )
     #test = DataManager.get_data( "Mithril bar" , 12 , 2014 , 12 , 2015 )
     #print test
-    IDManager.record_commodity_stats( 1001 , 2001 )
+    IDManager.record_commodity_stats( 1758 , 2001 )
     #test = PriceCrawler.get_price_data_from_html( 12621 )
     #print IDManager.is_interesting( test )
 
