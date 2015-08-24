@@ -9,19 +9,81 @@ import datetime
 import re
 
 '''
-Stores daily and average price time series data for a commodity. The following
-is a list of all data of which this object keeps track:
+Represents one data point of time series data. A DataPoint keeps track of
+the following data:
 
-* name - the name of the commodity, e.g. Mithril ore
 * year - the year values of the time series data, stored as a string of length 4
 * month - the month values of the time series data, stored as a string of length 2
 * day - the day values of the time series data, stored as a string of length 2
 * daily - the daily integer prices of the time series data
 * average - the average integer prices of the time series data
+* traded - the quantity traded on a givne day, stored as an integer
+'''
+class DataPoint( object ):
+    
+    @staticmethod
+    def from_csv_data( year , month , data ):
+        values = data.split( "," )
+        day = str( values[ 0 ] )
+        daily = int( values[ 1 ] )
+        average = int( values[ 2 ] )
+        traded = int( values[ 3 ] )
+        return DataPoint( year , month , day , daily , average , traded )
+    '''
+    Creates a DataPoint object with the following data:
+    
+    * year - the year values of the time series data, stored as a string of length 4
+    * month - the month values of the time series data, stored as a string of length 2
+    * day - the day values of the time series data, stored as a string of length 2
+    * daily - the daily integer prices of the time series data
+    * average - the average integer prices of the time series data
+    * traded - the quantity traded on a givne day, stored as an integer
+    '''
+    def __init__( self , year , month , day , daily=0 , average=0 , traded=0 ):
+        self._year = year
+        self._month = month
+        self._day = day
+        self._daily = daily
+        self._average = average
+        self._traded = traded
 
-Given an index i within range, we can say that on the date
-year[i]/month[i]/day[i], the daily price of <name> was daily[i] and the
-average 180-day price of <name> was average[i].
+    '''
+    Determines the textual representation of this data point as a comma
+    separated value.
+    
+    @return - the representation of this data point in CSV format
+    '''
+    def __str__( self ):
+        return self._year + "," + self._month + "," + self._day + "," + \
+                str( self._daily ) + "," + str( self._average ) + "," + \
+                str( self._traded )
+                
+    '''
+    Determines the textual representation of this data point as a
+    comma separated value without the year, month, and date. This
+    makes it more memory-efficient to store in a filesystem that
+    is already indexed by dates.
+    
+    @return - the representation of this data point in CSV format
+    without the date
+    '''
+    def str_without_date( self ):
+        return str( self._daily ) + "," + str( self._average ) + "," + \
+                str( self._traded )
+                
+    def __eq__( self , other ):
+        return self._year == other._year and \
+            self._month == other._month and \
+            self._day == other._day and \
+            self._daily == other._daily and \
+            self._average == other._average and \
+            self._traded == other._traded
+    
+'''
+Stores daily and average price time series data for a commodity. 
+
+This object maintains a list of DataPoint objects. What specific data is stored
+is determined by the DataPoint class structure.
 '''
 class CommodityPriceData( object ):
     
@@ -29,40 +91,42 @@ class CommodityPriceData( object ):
     Creates a CommodityPriceData object with the given time series data.
     
     @param name - the name of the commodity, as a string
-    @param year - the year values of the time series data, as a list of strings
-    of length 4
-    @param month - the month values of the time series data, as a list of strings
-    of length 2
-    @param day - the day values of the time series data, as a list of strings
-    of length 2
-    @param daily - the daily price values of the time series data, as a list
-    of integers
-    @param average - the average 180-day price values of the time series data,
-    as a list of integers
+    @param datapoints - the time series data of the prices of this commodity
+    as a list of DataPoint objects
     '''
-    def __init__( self , name , year , month , day , daily , average ):
-        self.name = name
-        self.year = year
-        self.month = month
-        self.day = day
-        self.daily = daily
-        self.average = average
+    def __init__( self , name , datapoints ):
+        self._name = name
+        self._datapoints = datapoints
+        
+    '''
+    @return - the DataPoint object stored at the given index. This should not
+    be modified externally!
+    '''
+    def get_data_at( self , index ):
+        return self._datapoints[ index ]
+        
+    '''
+    @return - the number of DataPoint objects stored
+    '''
+    def get_num_datapoints( self ):
+        return len( self._datapoints )
+      
+    '''
+    @return - the list of all DataPoint objects stored. This should not
+    be modified externally!
+    '''
+    def get_all_datapoints( self ):
+        return self._datapoints
         
     def __str__( self ):
-        rtn = "Price data for " + self.name
-        for i in range( 0 , len( self.year ) ):
-            rtn += "\n[" + self.year[ i ] + "/" + self.month[ i ] + \
-                "/" + self.day[ i ] + ", " + str( self.daily[ i ] ) + \
-                ", " + str( self.average[ i ] ) + "]";
+        rtn = "Price data for " + self._name
+        for i in range( 0 , len( self._datapoints ) ):
+            rtn += "\n[" + str( self._datapoints[ i ] ) + "]";
         return rtn
         
     def __eq__( self , other ):
-        return self.name == other.name and \
-            self.year == other.year and \
-            self.month == other.month and \
-            self.day == other.day and \
-            self.daily == other.daily and \
-            self.average == other.average
+        return self._name == other._name and \
+            self._datapoints == other._datapoints
        
 '''
 Provides functions for obtaining Grand Exchange data.
@@ -93,11 +157,7 @@ class PriceCrawler( object ):
         dailyPriceJson = json[0:json.find( "average" )]
         averagePriceJson = json[json.find( "average"):len(json)]
         
-        years = []
-        months = []
-        days = []
-        prices = []
-        averages = []
+        datapoints = []
         
         #data comes in the form {timestamp:value, timestamp:value, ...}
         #where all timestamps and prices are integer values,
@@ -116,13 +176,14 @@ class PriceCrawler( object ):
             #we just add 12 hours to be safe. We are only interested in dates
             #and the actual hour of day does not matter to us.
             dateValues = re.findall( r'\d+' , str(datetime.datetime.fromtimestamp( int(timestamp)/1000 + 43200 )) )
-            years.append( str( dateValues[ 0 ] ) )
-            months.append( str( dateValues[ 1 ] ) )
-            days.append( str( dateValues[ 2 ] ) )
-            prices.append( int(priceData[ i+1 ]) )
-            averages.append( int(averageData[ i+1 ]) )
+            year = str( dateValues[ 0 ] )
+            month = str( dateValues[ 1 ] )
+            day = str( dateValues[ 2 ] )
+            price = int( priceData[ i+1 ] )
+            average = int( averageData[ i+1 ] )
+            datapoints.append( DataPoint( year , month , day , price , average ) )
 
-        return CommodityPriceData( name , years , months , days , prices , averages )         
+        return CommodityPriceData( name , datapoints )         
 
     '''
     Gets price data for a given commodity from the HTML of the Grand Exchange
@@ -149,49 +210,55 @@ class PriceCrawler( object ):
         #and the price data is always pushed to the graphs on the webpage
         #with the command "average180.push( ... )" so we are just interested
         #in lines with that command
-        data = re.findall( r'average180.push.*' , html )
+        priceData = re.findall( r'average180.push.*' , html )
+        volumeData = re.findall( r'trade180.push.*' , html )
         
-        years = []
-        months = []
-        days = []
-        prices = []
-        averages = []
+        datapoints = []
         
-        for datapoint in data:
-            numbers = re.findall( r'\d+' , datapoint )
+        for price , volume in zip( priceData , volumeData ):
+            priceNumbers = re.findall( r'\d+' , price )
             
             #we'll keep years, months, and days in string form because
             #we want there to always be 4 digits in a year, 2 digits in 
             #a month and 2 digits in a day. If we converted them to integers,
             #we would lose a digit sometimes - e.g. 01 would be converted to 1
             #and we'd lose consistency.
-            years.append( str( numbers[ 1 ] ) )
-            months.append( str( numbers[ 2 ] ) )
-            days.append( str( numbers[ 3 ] ) )
+            year = str( priceNumbers[ 1 ] )
+            month = str( priceNumbers[ 2 ] )
+            day = str( priceNumbers[ 3 ] )
             
             #prices, on the other hand, can be converted to integers because
             #all commodities will always cost an integer number of coins.
-            prices.append( int(numbers[ 4 ]) )
-            averages.append( int(numbers[ 5 ]) )
+            price = int( priceNumbers[ 4 ] )
+            average = int( priceNumbers[ 5 ] )
+            
+            volumeNumbers = re.findall( r'\d+' , volume )
+            
+            #volume can also be converted to integers
+            #because all commodities will have an integer volume each day
+            volume = int( volumeNumbers[ 4 ] )
+            
+            datapoints.append( DataPoint( year , month , day , price , average , volume ) )
 
-        return CommodityPriceData( name , years , months , days , prices , averages )       
+        return CommodityPriceData( name , datapoints )       
         
 def main():
     test = PriceCrawler.get_price_data_from_json( "Mithril ore" , 447 ) 
     test2 = PriceCrawler.get_price_data_from_html( 447 )
-    assert test == test2
     
     #type checks
-    assert isinstance( test.year[ 0 ] , str )
-    assert isinstance( test.month[ 0 ] , str )
-    assert isinstance( test.day[ 0 ] , str )
-    assert isinstance( test.daily[ 0 ] , int )
-    assert isinstance( test.average[ 0 ] , int )
-    assert isinstance( test2.year[ 0 ] , str )
-    assert isinstance( test2.month[ 0 ] , str )
-    assert isinstance( test2.day[ 0 ] , str )
-    assert isinstance( test2.daily[ 0 ] , int )
-    assert isinstance( test2.average[ 0 ] , int )
+    assert isinstance( test.get_data_at( 0 )._year , str )
+    assert isinstance( test.get_data_at( 0 )._month , str )
+    assert isinstance( test.get_data_at( 0 )._day , str )
+    assert isinstance( test.get_data_at( 0 )._daily , int )
+    assert isinstance( test.get_data_at( 0 )._average , int )
+    assert isinstance( test2.get_data_at( 0 )._year , str )
+    assert isinstance( test2.get_data_at( 0 )._month , str )
+    assert isinstance( test2.get_data_at( 0 )._day , str )
+    assert isinstance( test2.get_data_at( 0 )._daily , int )
+    assert isinstance( test2.get_data_at( 0 )._average , int )
+    
+    print test2
     
     print "Regression testing for price_crawler.py passed"
     

@@ -5,6 +5,7 @@ Created on Fri Aug 21 2015
 @author: mjchao
 """
 
+from price_crawler import DataPoint
 import csv 
 import os
 
@@ -93,10 +94,10 @@ class MonthData( object ):
         self.numDays = MonthData.get_num_days_in_month( month , year )
         self.data = []
         for i in range( 0 , self.numDays+1 ):
-            self.data.append( (0 , 0) )
+            self.data.append( DataPoint( year , month , i , 0 , 0 ) )
     
     '''
-    Sets the (daily price , average price) data for the given day
+    Sets the time series DataPoint object for the given day
     of the month. 
     
     You can set some data for day 0 without getting an error,
@@ -105,16 +106,14 @@ class MonthData( object ):
     @param day - a valid day of the month, as an integer. Note that if the
     month that this MonthData represents has n days, you should not use
     any days greater than n.
-    @param dailyPrice - the daily price of a commodity on the given day,
-    as an integer.
-    @param averagePrice - the average 180-day price of a commodity on the
-    given day, as an integer.
+    @param datapoint - the time series data for the given day of the month.
+    This should be provided as a DataPoint object.
     '''
-    def set( self , day , dailyPrice , averagePrice ):
-        self.data[ day ] = ( dailyPrice , averagePrice )
+    def set( self , day , datapoint ):
+        self.data[ day ] = datapoint
 
     '''
-    Gets the (daily price, average price) data tuple for the given day
+    Gets the time series DataPoint object for the given day
     of the month. 
     
     You can get data for day 0 without getting an error,
@@ -123,6 +122,8 @@ class MonthData( object ):
     
     @param day - a valid day of the month, as an integer. If this month
     has n days, you should not use any days greater than n.
+    @return - the DataPoint object corresponding to the time series data
+    of the given day of this month.
     '''        
     def get( self , day ):
         return self.data[ day ]
@@ -146,14 +147,12 @@ class MonthData( object ):
         #we hard code the first print so that we can avoid having a
         #trailing newline at the end
         rtn = MonthData.format_day( 1 ) + \
-            "," + str( self.data[ 1 ][ 0 ] ) + \
-            "," + str( self.data[ 1 ][ 1 ] )
+            "," + self.data[ 1 ].str_without_date()
             
         for i in range( 2 , self.numDays+1 ):
             rtn = rtn + "\n" + \
                 MonthData.format_day( i ) + \
-                "," + str( self.data[ i ][ 0 ] ) + \
-                "," + str( self.data[ i ][ 1 ] )
+                "," + self.data[ i ].str_without_date()
         
         return rtn
 
@@ -181,9 +180,10 @@ class PriceReader( object ):
         dir = "price_data/" + str( year ) + " " + MonthData.format_month( month )
         try :
             file = open( dir + "/" + commodity + ".csv" , "r" )
-            fin = csv.reader( file , delimiter="," )
-            for data in fin :
-                rtn.set( int(data[ 0 ]) , int(data[ 1 ]) , int(data[ 2 ]) )
+            lines = file.readlines()
+            for line in lines :
+                datapoint = DataPoint.from_csv_data( year , month , line )
+                rtn.set( int( datapoint._day ) , datapoint )
         except IOError:
             
             #there is no data, so ignore the error and return default
@@ -230,24 +230,24 @@ class PriceWriter( object ):
     @staticmethod
     def save_data( priceData ):
         months = {}
-        for i in range( 0 , len( priceData.year ) ):
-            key = (priceData.month[ i ] , priceData.year[ i ] )
+        for i in range( 0 , priceData.get_num_datapoints() ):
+            datapoint = priceData.get_data_at( i )
+            key = (datapoint._month , datapoint._year )
             
             #read in the data for the month if it exists
             if ( not months.has_key( key ) ):
                 months[ key ] = PriceReader.read_month_data( \
-                    int(priceData.month[ i ]) , int(priceData.year[ i ]) , priceData.name )
+                    int(datapoint._month) , int(datapoint._year) , priceData._name )
                     
             #the MonthData object must have been created and contains whatever
             #values were stored on the hard drive. We now merge
             #our price data into it, overwriting anything from before.
-            months[ key ].set( int(priceData.day[ i ]) , priceData.daily[ i ] , \
-                                                        priceData.average[ i ] )
+            months[ key ].set( int(datapoint._day) , datapoint )
         
         #after all data has been merged, we can rewrite the updated
         #data back to the hard drive
         for monthData in months.values() :
-            PriceWriter.write_month_data_to_file( monthData , priceData.name )
+            PriceWriter.write_month_data_to_file( monthData , priceData._name )
     
     '''
     Writes the month data for a given commodity to the appropriate file.
@@ -283,13 +283,16 @@ def main():
     #test = PriceReader.read_month_data( 8 , 2015 , "test" )
     #print test
     from price_crawler import PriceCrawler
-    priceData = PriceCrawler.get_price_data_from_json( "Mithril ore" , 447 )
+    #Mithril ore
+    priceData = PriceCrawler.get_price_data_from_html( 447 )
     PriceWriter.save_data( priceData )
     
-    priceData = PriceCrawler.get_price_data_from_json( "Mithril bar" , 2359 )
+    #Mithril bar
+    priceData = PriceCrawler.get_price_data_from_html( 2359 )
     PriceWriter.save_data( priceData )
     
-    priceData = PriceCrawler.get_price_data_from_json( "404" , 21736 )
+    #404 Error
+    priceData = PriceCrawler.get_price_data_from_html( 21736 )
     assert( priceData == None )
     
     print "Regression testing for price_data_io.py passed."
