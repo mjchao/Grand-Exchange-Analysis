@@ -320,4 +320,7 @@ def main():
     
     print "Regression testing for price_crawler.py passed"
     
+    test3 = PriceCrawler.get_price_data_from_html( 1 )
+    assert test3 == None
+    
 if __name__ == "__main__" : main()

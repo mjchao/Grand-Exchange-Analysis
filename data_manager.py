@@ -2,19 +2,48 @@
 
 from price_crawler import PriceCrawler
 from price_data_io import PriceWriter, PriceReader , MonthData
+from time import sleep
 
 class IDManager( object ):
     
     '''
-    Writes the list of interesting IDs for which we should retain data.
-    The criteria for interesting is:
-            Price >= 10000 OR Traded Volume >= 50000
-    This way, we filter out useless items like Steel Longsword which
-    nobody wants to trade.
+    Records the maximum price, minimum price, and volume for all 
+    commodities. This data will later be used to determine what
+    the promising commodities to trade. For example, we'd like to
+    trade on Mithril Ore because the volume is high and the price
+    fluctuates quite a bit, but we don't want to trade on
+    Steel Longsword because nobody trades it and the price doesn't
+    move that much.
     '''
     @staticmethod
-    def get_interesting_ids():
-        pass
+    def record_commodity_stats():
+        out = open( "price_data/item_stats" , "w" )
+        for i in range( 1 , 10 ):
+            print "Processing " + str( i )
+            testData = PriceCrawler.get_price_data_from_html( i )
+            if ( not testData is None ):
+                maxPrice = 0
+                minPrice = 999999999
+                maxVolume = 0
+                minVolume = 999999999
+                allPoints = testData.get_all_datapoints()
+                for datapoint in allPoints:
+
+                    #prices and volumes of 0 are invalid                    
+                    if ( datapoint.get_price != 0 ):
+                        maxPrice = max( datapoint.get_price() , maxPrice )
+                        minPrice = min( datapoint.get_price() , minPrice )
+                    
+                    if ( datapoint.get_volume() != 0 ):
+                        maxVolume = max( datapoint.get_volume() , maxVolume )
+                        minVolume = min( datapoint.get_volume() , minVolume )
+                    
+                out.write( str(i) + "," + str(maxPrice) + "," + str(minPrice) + \
+                    "," + str(maxVolume) + "," + str(minVolume) + "\n" )
+                
+            #let's not get blocked for denial of service attacks
+            sleep( 50.0 / 1000.0 )
+            
 '''
 Provides functions for managing data. 
 
@@ -161,7 +190,10 @@ class DataManager( object ):
 def main():
     DataManager.init()
     #DataManager.download_data_by_names( "mithril ore" , "mithril bar" , "coal" , "iron ore" , "steel bar" )
-    test = DataManager.get_data( "Mithril bar" , 12 , 2014 , 12 , 2015 )
-    print test
+    #test = DataManager.get_data( "Mithril bar" , 12 , 2014 , 12 , 2015 )
+    #print test
+    IDManager.record_commodity_stats()
+    #test = PriceCrawler.get_price_data_from_html( 12621 )
+    #print IDManager.is_interesting( test )
 
 if __name__ == "__main__" : main() 
