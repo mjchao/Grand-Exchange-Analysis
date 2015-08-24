@@ -2,6 +2,7 @@
 
 from price_crawler import PriceCrawler
 from price_data_io import PriceWriter, PriceReader , MonthData
+from random import randint
 from time import sleep
 
 class IDManager( object ):
@@ -14,11 +15,19 @@ class IDManager( object ):
     fluctuates quite a bit, but we don't want to trade on
     Steel Longsword because nobody trades it and the price doesn't
     move that much.
+    
+    Note: This function appends to the price_data/item_stats file.
+    Make sure you look through the file first before giving it
+    a start and end ID.
+    
+    @param startId - the first ID for which to record commodity stats
+    @param endId - one greater than the last ID for which to record
+    commodity stats (the range includes the start, but does not include
+    the end ID)
     '''
     @staticmethod
-    def record_commodity_stats():
-        out = open( "price_data/item_stats" , "w" )
-        for i in range( 1 , 10 ):
+    def record_commodity_stats( startId , endId ):
+        for i in range( startId , endId ):
             print "Processing " + str( i )
             testData = PriceCrawler.get_price_data_from_html( i )
             if ( not testData is None ):
@@ -27,7 +36,12 @@ class IDManager( object ):
                 maxVolume = 0
                 minVolume = 999999999
                 allPoints = testData.get_all_datapoints()
-                for datapoint in allPoints:
+                
+                #we do not include the last data point because
+                #that is today's data, which may be incomplete
+                #and so the volume may be much less than what it
+                #really is.
+                for datapoint in allPoints[1:len(allPoints)-1]:
 
                     #prices and volumes of 0 are invalid                    
                     if ( datapoint.get_price != 0 ):
@@ -38,11 +52,17 @@ class IDManager( object ):
                         maxVolume = max( datapoint.get_volume() , maxVolume )
                         minVolume = min( datapoint.get_volume() , minVolume )
                     
+                out = open( "price_data/item_stats" , "a" )
                 out.write( str(i) + "," + str(maxPrice) + "," + str(minPrice) + \
                     "," + str(maxVolume) + "," + str(minVolume) + "\n" )
+                out.close()
+            else:
+                print str( i ) + " was not a valid id"
                 
-            #let's not get blocked for denial of service attacks
-            sleep( 50.0 / 1000.0 )
+            #let's not get blocked for too many requests
+            sleepInterval = randint( 1 , 30 )
+            print "Sleeping " + str( sleepInterval )
+            sleep( sleepInterval )
             
 '''
 Provides functions for managing data. 
@@ -188,11 +208,11 @@ class DataManager( object ):
         return rtn
     
 def main():
-    DataManager.init()
+    #DataManager.init()
     #DataManager.download_data_by_names( "mithril ore" , "mithril bar" , "coal" , "iron ore" , "steel bar" )
     #test = DataManager.get_data( "Mithril bar" , 12 , 2014 , 12 , 2015 )
     #print test
-    IDManager.record_commodity_stats()
+    IDManager.record_commodity_stats( 101 , 201 )
     #test = PriceCrawler.get_price_data_from_html( 12621 )
     #print IDManager.is_interesting( test )
 
