@@ -241,7 +241,18 @@ class PriceWriter( object ):
                     
             #the MonthData object must have been created and contains whatever
             #values were stored on the hard drive. We now merge
-            #our price data into it, overwriting anything from before.
+            #our price data into it.
+            prevData = months[ key ].get( int(datapoint.get_day()) )
+            
+            #since json does not have volume data, it will always have
+            #volumes of 0. If our past data has nonzero volumes already 
+            #recorded, we don't want to lose that! So, we will merge
+            #the old data's volume into the new data's volume.
+            if ( prevData.get_volume() != 0 and datapoint.get_volume() == 0 ):
+                datapoint.initialize_volume( prevData.get_volume() )
+                
+            #everything else, other than the volume, can be overwritten
+            #by the merge.
             months[ key ].set( int(datapoint.get_day()) , datapoint )
         
         #after all data has been merged, we can rewrite the updated
@@ -289,6 +300,9 @@ def main():
     
     #Mithril bar
     priceData = PriceCrawler.get_price_data_from_html( 2359 )
+    PriceWriter.save_data( priceData )
+    
+    priceData = PriceCrawler.get_price_data_from_json( "Mithril bar" , 2359 )
     PriceWriter.save_data( priceData )
     
     #404 Error

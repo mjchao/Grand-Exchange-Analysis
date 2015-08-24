@@ -117,6 +117,17 @@ class DataPoint( object ):
     '''
     def get_volume( self ):
         return self._traded 
+        
+    '''
+    Sets the volume of this DataPoint. This should only be used if
+    the volume is 0 because the data was parsed from json (the json
+    data does not have volume data).
+    
+    @param volume - the quantity of the commodity that was traded on
+    YYYY/MM/DD, as an integer
+    '''
+    def initialize_volume( self , volume ):
+        self._traded = volume
     
 '''
 Stores daily and average price time series data for a commodity. 
@@ -180,7 +191,9 @@ class PriceCrawler( object ):
     
     '''
     Gets price data for a given commodity from json provided by the
-    Grand Exchange API.
+    Grand Exchange API. The trade volume is not reported, however, as the
+    json values do not have that. If you need trade volume, get the
+    data from the HTML instead.
     
     @param name - the name of the commodity, as a string.
     @param objectId - the Grand Exchange object ID for the commodity, as an integer.
