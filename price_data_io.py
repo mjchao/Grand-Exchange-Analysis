@@ -6,7 +6,6 @@ Created on Fri Aug 21 2015
 """
 
 from price_crawler import DataPoint
-import csv 
 import os
 
 '''
