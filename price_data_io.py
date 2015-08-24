@@ -9,8 +9,8 @@ from price_crawler import DataPoint
 import os
 
 '''
-Stores daily price and average 180-day price data for a month and
-provides methods to access that price data.
+Stores time series datapoints for a month and
+provides methods to access that data.
 '''
 class MonthData( object ):
 
@@ -82,7 +82,8 @@ class MonthData( object ):
     
     '''
     Creates a default MonthData object for the given month of the given year.
-    All data is initialized with daily price = 0 and average price = 0.
+    All data is initialized with daily price = 0, average price = 0,
+    and volume = 0
     
     @param month - the integer month for which this object will store data.
     @param year - the integer year for which this object will store data.
@@ -182,7 +183,7 @@ class PriceReader( object ):
             lines = file.readlines()
             for line in lines :
                 datapoint = DataPoint.from_csv_data( year , month , line )
-                rtn.set( int( datapoint._day ) , datapoint )
+                rtn.set( int( datapoint.get_day() ) , datapoint )
         except IOError:
             
             #there is no data, so ignore the error and return default
@@ -231,22 +232,22 @@ class PriceWriter( object ):
         months = {}
         for i in range( 0 , priceData.get_num_datapoints() ):
             datapoint = priceData.get_data_at( i )
-            key = (datapoint._month , datapoint._year )
+            key = (datapoint.get_month() , datapoint.get_year() )
             
             #read in the data for the month if it exists
             if ( not months.has_key( key ) ):
                 months[ key ] = PriceReader.read_month_data( \
-                    int(datapoint._month) , int(datapoint._year) , priceData._name )
+                    int(datapoint.get_month()) , int(datapoint.get_year()) , priceData.get_name() )
                     
             #the MonthData object must have been created and contains whatever
             #values were stored on the hard drive. We now merge
             #our price data into it, overwriting anything from before.
-            months[ key ].set( int(datapoint._day) , datapoint )
+            months[ key ].set( int(datapoint.get_day()) , datapoint )
         
         #after all data has been merged, we can rewrite the updated
         #data back to the hard drive
         for monthData in months.values() :
-            PriceWriter.write_month_data_to_file( monthData , priceData._name )
+            PriceWriter.write_month_data_to_file( monthData , priceData.get_name() )
     
     '''
     Writes the month data for a given commodity to the appropriate file.

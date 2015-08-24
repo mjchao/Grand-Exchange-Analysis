@@ -78,6 +78,45 @@ class DataPoint( object ):
             self._daily == other._daily and \
             self._average == other._average and \
             self._traded == other._traded
+       
+    '''
+    @return - the year of this data point, as a string of length 4
+    '''
+    def get_year( self ):
+        return self._year
+        
+    '''
+    @return - the month of this data point, as a string of length 2
+    '''
+    def get_month( self ):
+        return self._month
+        
+    '''
+    @return - the day of this data point, as a string of length 2
+    '''
+    def get_day( self ):
+        return self._day
+    
+    '''
+    @return - the price on YYYY/MM/DD of the commodity this data point
+    represents, as an integer.
+    '''
+    def get_price( self ):
+        return self._daily
+        
+    '''
+    @return - the average 180-day price on YYYY/MM/DD of the commodity this 
+    data point represents, as an integer
+    '''
+    def get_average180_price( self ):
+        return self._average
+        
+    '''
+    @return - the quantity of the commodity that was traded on YYYY/MM/DD,
+    as an integer
+    '''
+    def get_volume( self ):
+        return self._traded 
     
 '''
 Stores daily and average price time series data for a commodity. 
@@ -97,6 +136,12 @@ class CommodityPriceData( object ):
     def __init__( self , name , datapoints ):
         self._name = name
         self._datapoints = datapoints
+        
+    '''
+    @return - the name of this commodity, as a string
+    '''
+    def get_name( self ):
+        return self._name
         
     '''
     @return - the DataPoint object stored at the given index. This should not
