@@ -7,6 +7,7 @@ Created on Wed Aug 19 21:39:45 2015
 import requests
 import datetime
 import re
+import sys
 
 '''
 Represents one data point of time series data. A DataPoint keeps track of
@@ -260,6 +261,10 @@ class PriceCrawler( object ):
         
         #invalid object ID
         if ( "Sorry, there was a problem with your request." in html ):
+            if ( "You've made too many requests recently." in html and \
+                    "As a result, your IP address has been temporarily blocked. Please try again later." in html ):
+                print "Computer IP has been blocked. Please try again later."
+                sys.exit( 0 )
             return None
         
         #we can find the name in the title of the webpage.
