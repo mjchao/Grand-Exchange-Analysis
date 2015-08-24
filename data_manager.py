@@ -3,6 +3,18 @@
 from price_crawler import PriceCrawler
 from price_data_io import PriceWriter, PriceReader , MonthData
 
+class IDManager( object ):
+    
+    '''
+    Writes the list of interesting IDs for which we should retain data.
+    The criteria for interesting is:
+            Price >= 10000 OR Traded Volume >= 50000
+    This way, we filter out useless items like Steel Longsword which
+    nobody wants to trade.
+    '''
+    @staticmethod
+    def get_interesting_ids():
+        pass
 '''
 Provides functions for managing data. 
 
@@ -48,7 +60,7 @@ class DataManager( object ):
     @param id - the object id of the commodity, as an integer
     '''
     @staticmethod
-    def downloadDataByNameAndId( name , id ):
+    def download_data_by_name_and_id( name , id ):
         data = PriceCrawler.get_price_data_from_json( name , id )
         if ( data != None ) :
             PriceWriter.save_data( data )
@@ -62,11 +74,11 @@ class DataManager( object ):
     case insensitive
     '''    
     @staticmethod
-    def downloadDataByName( objectName ):
+    def download_data_by_name( objectName ):
         name = objectName.lower()
         id = DataManager.nameToId[ name ]
         caseSensitiveName = DataManager.idToName[ id ]
-        DataManager.downloadDataByNameAndId( caseSensitiveName , id )
+        DataManager.download_data_by_name_and_id( caseSensitiveName , id )
         
     '''
     Downloads the most recent data for all given commodities.
@@ -75,9 +87,9 @@ class DataManager( object ):
     download price data. The names are case insensitive.
     '''
     @staticmethod
-    def downloadDataByNames( *names ):
+    def download_data_by_names( *names ):
         for name in names:
-            DataManager.downloadDataByName( name )
+            DataManager.download_data_by_name( name )
     
     '''
     Downloads the most recent data for the commodity with the given ID.
@@ -85,10 +97,10 @@ class DataManager( object ):
     @param objectId - the ID of the commodity, as an integer
     '''
     @staticmethod
-    def downloadDataById( objectId ):
+    def download_data_by_id( objectId ):
         id = objectId
         name = DataManager.idToName[ id ]
-        DataManager.downloadDataByNameAndId( name , id )
+        DataManager.download_data_by_name_and_id( name , id )
         
     '''
     Gets all price data for a given commodity starting at the given start
@@ -148,7 +160,7 @@ class DataManager( object ):
     
 def main():
     DataManager.init()
-    #DataManager.downloadDataByNames( "mithril ore" , "mithril bar" , "coal" , "iron ore" , "steel bar" )
+    #DataManager.download_data_by_names( "mithril ore" , "mithril bar" , "coal" , "iron ore" , "steel bar" )
     test = DataManager.get_data( "Mithril bar" , 12 , 2014 , 12 , 2015 )
     print test
 
