@@ -60,7 +60,7 @@ class IDManager( object ):
                 print str( i ) + " was not a valid id"
                 
             #let's not get blocked for too many requests
-            sleepInterval = randint( 1 , 30 )
+            sleepInterval = randint( 3 , 5 )
             print "Sleeping " + str( sleepInterval )
             sleep( sleepInterval )
             
