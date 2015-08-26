@@ -213,7 +213,7 @@ def main():
     #DataManager.download_data_by_names( "mithril ore" , "mithril bar" , "coal" , "iron ore" , "steel bar" )
     #test = DataManager.get_data( "Mithril bar" , 12 , 2014 , 12 , 2015 )
     #print test
-    IDManager.record_commodity_stats( 9398 , 10001 )
+    IDManager.record_commodity_stats( 12237 , 20001 )
     #test = PriceCrawler.get_price_data_from_html( 12621 )
     #print IDManager.is_interesting( test )
 
