@@ -106,6 +106,6 @@ class Filter( object ):
 def main():
     Filter.init()        
     Filter.train()
-    print Filter.predict( 447 )
+    print Filter.predict( 11928 )
 
 if __name__ == "__main__" : main()

@@ -5,80 +5,16 @@ Created on Fri Aug 21 2015
 @author: mjchao
 """
 
-from price_crawler import DataPoint
+from price_crawler import PriceCrawler
+from price_data import DataPoint , CommodityPriceData
 import os
+from date_utils import DateUtils
 
 '''
 Stores time series datapoints for a month and
 provides methods to access that data.
 '''
-class MonthData( object ):
-
-    DAYS_IN_MONTH = {
-        1 : 31 ,
-        2 : 28 ,
-        3 : 31 ,
-        4 : 30 ,
-        5 : 31 ,
-        6 : 30 ,
-        7 : 31 ,
-        8 : 31 ,
-        9 : 30 ,
-        10 : 31 ,
-        11 : 30 ,
-        12 : 31
-    }  
-    
-    '''
-    Determines the number of days in a given month.
-    
-    @param month - a month, as an integer
-    @param year - a year, as an integer. This will be used if the month is a 
-    February which will have 28 or 29 days, depending on if it is a leap year.
-    @return - the number of days in the given month as an integer
-    '''
-    @staticmethod 
-    def get_num_days_in_month( month , year ):
-        
-        #all years divisible by 4 are leap years, except those divisible by 
-        #100 but not 400.
-        if ( month == 2 ):
-            if ( year % 100 == 0 and year % 400 != 0 ):
-                return 28
-            else:
-                return 29 if year % 4 == 0 else 28
-        else :
-            return MonthData.DAYS_IN_MONTH[ month ]
-
-    '''
-    Formats an integer month to be a string with length 2. This is just
-    for consistency issues.
-    
-    @param month - a month, as an integer
-    @return - the given month as a string with length 2
-    '''
-    @staticmethod
-    def format_month( month ):
-        rtn = str( month )
-        if ( len( rtn ) == 1 ):
-            rtn = "0" + rtn
-            
-        return rtn
-        
-    '''
-    Formats an integer day to be a string with length 2. This is just for
-    consistency issues.
-    
-    @param day - a day, as an integer
-    @return - the given day as a string with length 2
-    '''            
-    @staticmethod
-    def format_day( day ):
-        rtn = str( day )
-        if ( len( rtn ) == 1 ):
-            rtn = "0" + rtn
-            
-        return rtn
+class MonthData( object ):        
     
     '''
     Creates a default MonthData object for the given month of the given year.
@@ -91,7 +27,7 @@ class MonthData( object ):
     def __init__( self , month , year ):
         self.month = month
         self.year = year
-        self.numDays = MonthData.get_num_days_in_month( month , year )
+        self.numDays = DateUtils.get_num_days_in_month( month , year )
         self.data = []
         for i in range( 0 , self.numDays+1 ):
             self.data.append( DataPoint( year , month , i , 0 , 0 ) )
@@ -146,12 +82,12 @@ class MonthData( object ):
         
         #we hard code the first print so that we can avoid having a
         #trailing newline at the end
-        rtn = MonthData.format_day( 1 ) + \
+        rtn = DateUtils.format_day( 1 ) + \
             "," + self.data[ 1 ].str_without_date()
             
         for i in range( 2 , self.numDays+1 ):
             rtn = rtn + "\n" + \
-                MonthData.format_day( i ) + \
+                DateUtils.format_day( i ) + \
                 "," + self.data[ i ].str_without_date()
         
         return rtn
@@ -177,12 +113,12 @@ class PriceReader( object ):
     @staticmethod
     def read_month_data( month , year , commodity ):
         rtn = MonthData( month , year )
-        dir = "price_data/" + str( year ) + " " + MonthData.format_month( month )
+        dir = "price_data/" + str( year ) + " " + DateUtils.format_month( month )
         try :
             file = open( dir + "/" + commodity + ".csv" , "r" )
             lines = file.readlines()
             for line in lines :
-                datapoint = DataPoint.from_csv_data( year , month , line )
+                datapoint = DataPoint.from_csv_month_data( year , month , line )
                 rtn.set( int( datapoint.get_day() ) , datapoint )
         except IOError:
             
@@ -191,6 +127,30 @@ class PriceReader( object ):
             pass
         
         return rtn
+        
+    '''
+    Gets price data for a given commodity from a CSV file or returns
+    None if the CSV file for the given commodity ID was not found
+    
+    @param commodityId - the ID of a commodity, as an integer
+    @param filename - the name of the CSV file from which to read data, as
+    a string. If the CSV file does not exist, None will be returned.
+    @return - a CommodityPriceData object with all the 
+    '''
+    @staticmethod
+    def get_price_data_from_csv( commodityId ):
+        filename = "price_data/master_list/" + str( commodityId ) + ".csv"
+        try:
+            f = open( filename , "r" )
+            
+            #have to get rid of the \n at the end of the line
+            name = f.readline()[0:-1]
+            datapoints = []
+            for line in f:
+                datapoints.append( DataPoint.from_csv_data( line ) )
+            return CommodityPriceData( commodityId , name , datapoints )
+        except IOError:
+            return None
         
 '''
 Provides functions for writing daily and average price data to the 
@@ -229,6 +189,20 @@ class PriceWriter( object ):
     '''
     @staticmethod
     def save_data( priceData ):
+        PriceWriter.save_list_data( priceData )
+    
+    '''
+    '''
+    @staticmethod
+    def save_list_data( priceData ):
+        filename = "price_data/master_list/" + str( priceData.get_id() ) + ".csv"
+        PriceWriter.write_price_data_to_csv( filename , priceData )
+        
+    '''
+    Saves the data in a CommodityPriceData object to the 
+    '''
+    @staticmethod
+    def save_month_data( priceData ):
         months = {}
         for i in range( 0 , priceData.get_num_datapoints() ):
             datapoint = priceData.get_data_at( i )
@@ -268,7 +242,7 @@ class PriceWriter( object ):
     '''
     @staticmethod
     def write_month_data_to_file( monthData , commodity ):
-        month = MonthData.format_month( monthData.month )
+        month = DateUtils.format_month( monthData.month )
         year = str( monthData.year )
         datafile = "price_data/" + year + " " + month + "/" + commodity + ".csv" 
         
@@ -278,6 +252,20 @@ class PriceWriter( object ):
             
         f = open( datafile , "w" )
         f.write( str( monthData ) )
+                    
+    '''
+    Writes some price data to a CSV file.
+    
+    @param filename - the file to which to write price data
+    @param priceData - the CommodityPriceData object to save to a CSV file
+    '''      
+    @staticmethod
+    def write_price_data_to_csv( filename , priceData ):
+        f = open( filename , "w" )
+        f.write( priceData.get_name() + "\n" )
+        for datapoint in priceData.get_all_datapoints():
+            f.write( str( datapoint ) + "\n" )
+        f.close()
     
 def main():
     test = MonthData( 2 , 2012 )
@@ -293,7 +281,6 @@ def main():
     #PriceWriter.write_month_data_to_file( test , "test" )
     #test = PriceReader.read_month_data( 8 , 2015 , "test" )
     #print test
-    from price_crawler import PriceCrawler
     #Mithril ore
     priceData = PriceCrawler.get_price_data_from_html( 447 )
     PriceWriter.save_data( priceData )
@@ -308,6 +295,8 @@ def main():
     #404 Error
     priceData = PriceCrawler.get_price_data_from_html( 21736 )
     assert( priceData == None )
+    
+    assert PriceReader.get_price_data_from_csv( 447 ) == PriceCrawler.get_price_data_from_html( 447 )
     
     print "Regression testing for price_data_io.py passed."
 
