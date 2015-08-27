@@ -13,14 +13,14 @@ import matplotlib.pyplot as plt
 def download_data_by_id( id ):
     priceData = PriceCrawler.get_price_data_from_html( id )
     if ( priceData != None ):
-        f = open( "price_data/item_ids" , "w" )
+        f = open( "price_data/item_ids" , "a" )
         f.write( priceData.get_name() + "," + str( id ) + "\n" )
         f.close()
         PriceWriter.write_price_data_to_csv( "price_data/master_list/" + str(id) + ".csv" , priceData )
     
 f = open( "price_data/item_stats" , "r" )
 startID = 2
-endID = 100
+endID = 12520
 for line in f:
     data = line.split( "," )
     itemID = int( data[ 0 ] )
