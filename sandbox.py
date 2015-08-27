@@ -19,7 +19,7 @@ def download_data_by_id( id ):
         PriceWriter.write_price_data_to_csv( "price_data/master_list/" + str(id) + ".csv" , priceData )
     
 f = open( "price_data/item_stats" , "r" )
-startID = 2
+startID = 2134
 endID = 12520
 for line in f:
     data = line.split( "," )
