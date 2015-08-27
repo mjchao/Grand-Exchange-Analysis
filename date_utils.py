@@ -99,3 +99,10 @@ class DateUtils( object ):
                     return True;
                 else:
                     return False
+                    
+def main():
+    assert DateUtils.is_after( 2015 , 8 , 27 , 2015 , 8 , 13 ) == False
+    assert DateUtils.is_after( 2015 , 8 , 13 , 2015 , 8 , 27 ) == True
+    print "Regression testing for date_utils.py passed."
+
+if __name__ == "__main__" : main()

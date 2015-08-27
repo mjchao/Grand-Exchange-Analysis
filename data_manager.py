@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from price_crawler import PriceCrawler
-from price_data_io import PriceWriter, PriceReader , MonthData
+from price_data_io import PriceWriter, PriceReader
 from random import randint
 from time import sleep
 

@@ -261,9 +261,18 @@ class PriceWriter( object ):
     '''      
     @staticmethod
     def write_price_data_to_csv( filename , priceData ):
+        mergedData = PriceReader.get_price_data_from_csv( priceData.get_id() )
+        if ( mergedData is None ):
+            mergedData = priceData
+        else:
+            lastDatapoint = mergedData.get_data_at( mergedData.get_num_datapoints()-1 )
+            for datapoint in priceData.get_all_datapoints():
+                if ( lastDatapoint.is_before( datapoint ) ):
+                    mergedData.append_datapoint( datapoint )
+        
         f = open( filename , "w" )
-        f.write( priceData.get_name() + "\n" )
-        for datapoint in priceData.get_all_datapoints():
+        f.write( mergedData.get_name() + "\n" )
+        for datapoint in mergedData.get_all_datapoints():
             f.write( str( datapoint ) + "\n" )
         f.close()
     
@@ -296,7 +305,9 @@ def main():
     priceData = PriceCrawler.get_price_data_from_html( 21736 )
     assert( priceData == None )
     
-    assert PriceReader.get_price_data_from_csv( 447 ) == PriceCrawler.get_price_data_from_html( 447 )
+    fromCSV = PriceReader.get_price_data_from_csv( 447 )
+    fromHTML = PriceCrawler.get_price_data_from_html( 447 )
+    assert fromCSV == fromHTML
     
     print "Regression testing for price_data_io.py passed."
 

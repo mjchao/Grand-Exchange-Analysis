@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from date_utils import DateUtils 
+
 '''
 Represents one data point of time series data. A DataPoint keeps track of
 the following data:
@@ -147,6 +149,16 @@ class DataPoint( object ):
     '''
     def initialize_volume( self , volume ):
         self._traded = volume
+
+    '''
+    Determines if this DataPoint comes before another DataPoint's time.
+    
+    @param otherDatapoint - another Datapoint with which to compare precedence
+    '''        
+    def is_before( self , otherDatapoint ):
+        return DateUtils.is_after( int( self._year ) , int( self._month ) , \
+            int( self._day ) , int( otherDatapoint._year ) , \
+            int( otherDatapoint._month ) , int( otherDatapoint._day ) )
     
 '''
 Stores daily and average price time series data for a commodity. 
@@ -201,6 +213,17 @@ class CommodityPriceData( object ):
     def get_all_datapoints( self ):
         return self._datapoints
         
+    '''
+    Adds the given datapoint to the end of the list of datapoints. 
+    WARNING: There are no checks. You must make sure you do not append
+    an out of order datapoint! In particular, the datapoint
+    you are appending should come after all previous datapoints
+    
+    @param datapoint - the DataPoint obejct to append
+    '''
+    def append_datapoint( self , datapoint ):
+        self._datapoints.append( datapoint )
+        
     def __str__( self ):
         rtn = "Price data for " + self._name
         for i in range( 0 , len( self._datapoints ) ):
@@ -211,3 +234,13 @@ class CommodityPriceData( object ):
         return self._id == other._id and \
             self._name == other._name and \
             self._datapoints == other._datapoints
+            
+def main():
+    p1 = DataPoint( "2015" , "08" , "01" )
+    p2 = DataPoint( "2015" , "08" , "22" )
+    assert p1.is_before( p2 )
+    assert p2.is_before( p1 ) == False
+    
+    print "Regression testing for price_data passed."
+
+if __name__ == "__main__" : main()
