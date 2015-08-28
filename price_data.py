@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from date_utils import DateUtils 
+from datetime import datetime
+import matplotlib.pyplot as plt
+import numpy as np
 
 '''
 Represents one data point of time series data. A DataPoint keeps track of
@@ -234,6 +237,20 @@ class CommodityPriceData( object ):
         return self._id == other._id and \
             self._name == other._name and \
             self._datapoints == other._datapoints
+            
+    '''
+    Plots the price of this commodity over time.
+    '''
+    def plot_price_over_time( self ):
+        times = np.array( [ datetime.strptime( x.get_year() + "-" + \
+                    x.get_month() + "-" + x.get_day() , "%Y-%m-%d" ) \
+                    for x in self._datapoints ] )
+        prices = np.array([ x.get_price() for x in self._datapoints ])
+        plt.plot( times , prices , marker="o" )
+        plt.suptitle( self._name )
+        plt.xlabel( "t" )
+        plt.ylabel( "Price" )
+        plt.show()
             
 def main():
     p1 = DataPoint( "2015" , "08" , "01" )
