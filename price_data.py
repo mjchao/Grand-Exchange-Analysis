@@ -246,6 +246,7 @@ class CommodityPriceData( object ):
                     x.get_month() + "-" + x.get_day() , "%Y-%m-%d" ) \
                     for x in self._datapoints ] )
         prices = np.array([ x.get_price() for x in self._datapoints ])
+        plt.clf()
         plt.plot( times , prices , marker="o" )
         plt.suptitle( self._name )
         plt.xlabel( "t" )
