@@ -6,9 +6,9 @@ from time import sleep
 import matplotlib.pyplot as plt
 
 #DataManager.init()
-#mithrilBarData = DataManager.get_data( "Mithril bar" , 2 , 2015 , 8 , 2015 )
-#mithrilOreData = DataManager.get_data( "Mithril ore" , 2 , 2015 , 8 , 2015 )
-#coalData = DataManager.get_data( "Coal" , 2 , 2015 , 8 , 2015 )
+#mithrilBarData = DataManager.get_data_by_date_range( "Mithril bar" , 2 , 2015 , 8 , 2015 )
+#mithrilOreData = DataManager.get_data_by_date_range( "Mithril ore" , 2 , 2015 , 8 , 2015 )
+#coalData = DataManager.get_data_by_date_range( "Coal" , 2 , 2015 , 8 , 2015 )
 
 def download_data_by_id( id ):
     priceData = PriceCrawler.get_price_data_from_html( id )

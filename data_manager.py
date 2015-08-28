@@ -94,7 +94,7 @@ class DataManager( object ):
         f = open( "price_data/item_ids" )
         lines = f.readlines()
         for line in lines :
-            pairing = line.split( ";" )
+            pairing = line.split( "," )
             objName = pairing[ 0 ]
             objID = int( pairing[ 1 ] )
             DataManager.idToName[ objID ] = objName
@@ -151,6 +151,30 @@ class DataManager( object ):
         id = objectId
         name = DataManager.idToName[ id ]
         DataManager.download_data_by_name_and_id( name , id )
+    
+    '''
+    Gets all known price data for the commodity with the given name.
+    The name is not case sensitive.
+    
+    @param name - the name of a commodity, as a string
+    @return - the PriceData for the given commodity, or None if the commodity
+    was not found.
+    '''
+    @staticmethod
+    def get_data_by_name( name ):
+        id = DataManager.nameToId[ name.lower() ]
+        return PriceReader.get_price_data_from_csv( id )
+        
+    '''
+    Gets all known price data for the commodity with the given ID.
+    
+    @param id - the ID of a commodity, as an integer
+    @return - the PriceData for the given commodity, or None if the
+    ID was not found.
+    '''
+    @staticmethod
+    def get_data_by_id( id ):
+        return PriceReader.get_price_data_from_csv( id )
         
     '''
     Gets all price data for a given commodity starting at the given start
@@ -163,7 +187,7 @@ class DataManager( object ):
     @param endYear - the year of the end date, as an integer.
     '''
     @staticmethod
-    def get_data( name , startMonth , startYear , endMonth , endYear ):
+    def get_data_by_date_range( name , startMonth , startYear , endMonth , endYear ):
         caseSensitiveName = DataManager.idToName[ DataManager.nameToId[ name.lower() ] ]
         
         rtn = []
@@ -211,10 +235,11 @@ class DataManager( object ):
 def main():
     #DataManager.init()
     #DataManager.download_data_by_names( "mithril ore" , "mithril bar" , "coal" , "iron ore" , "steel bar" )
-    #test = DataManager.get_data( "Mithril bar" , 12 , 2014 , 12 , 2015 )
+    #test = DataManager.get_data_by_date_range( "Mithril bar" , 12 , 2014 , 12 , 2015 )
     #print test
-    IDManager.record_commodity_stats( 12521 , 20001 )
+    #IDManager.record_commodity_stats( 12521 , 20001 )
     #test = PriceCrawler.get_price_data_from_html( 12621 )
     #print IDManager.is_interesting( test )
+    pass
 
 if __name__ == "__main__" : main() 

@@ -135,7 +135,8 @@ class PriceReader( object ):
     @param commodityId - the ID of a commodity, as an integer
     @param filename - the name of the CSV file from which to read data, as
     a string. If the CSV file does not exist, None will be returned.
-    @return - a CommodityPriceData object with all the 
+    @return - a CommodityPriceData object with all the price data
+    for the given commodity
     '''
     @staticmethod
     def get_price_data_from_csv( commodityId ):

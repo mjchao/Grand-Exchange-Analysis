@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from data_manager import DataManager
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn import linear_model, datasets
@@ -48,12 +49,74 @@ regression.
 class Filter( object ):
 
     '''
+    All price data for all known commodities.
+    '''
+    priceData = []
+    
+    '''
     A list of item data on which to perform logistic regression
     '''
     itemData = []
+    
     itemDataMap = {}
     
     logreg = linear_model.LogisticRegression()
+    
+    '''
+    Creates a feature vector given the price data for a given commodity.
+    Here are the features we think will be useful
+        * Standard deviation of the daily price - index 0
+        * Standard deviation of daily price changes - index 1
+        * Number of trend reversals - index 2
+        * Average volume - index 3
+        
+    
+    @param priceData - some price data for a commodity
+    @return - the feature vector on which we will perform logistic regression
+    for the given object, as an array of floats
+    '''
+    @staticmethod
+    def get_feature_vector( priceData ):
+        datapoints = priceData.get_all_datapoints()
+        dailyPrices = np.array( [ x.get_price() for x in datapoints ] )
+        dailyVolumes = np.array( [ x.get_volume() for x in datapoints ] )
+        
+        #compute standard deviation of daily price
+        stddevDaily = np.std( dailyPrices )
+        
+        #compute standard deviation of daily price changes
+        dailyChange = np.diff( dailyPrices )
+        stddevChange = np.std( dailyChange )
+        
+        #compute number of trend reversals:
+        #we give all positive trend changes value 1
+        #and all negative trend changes value 0.
+        #Now, if the trend changes from positive to negative
+        #or negative to positive, then the difference will be non-zero.
+        #We'll take the sum of the absolute value of all these differences
+        #to get us the number of trend changes
+        positiveTrendChanges = dailyChange > 0
+        negativeTrendChanges = dailyChange < 0
+        trendChanges = dailyChange
+        trendChanges[ positiveTrendChanges ] = 1
+        trendChanges[ negativeTrendChanges ] = 0
+        numTrendChanges = np.sum( np.diff( np.abs( trendChanges ) ) )
+        
+        #compute average daily volume.
+        #if the volume was 0 on a day, we ignore that day
+        nonzeroVolumes = dailyVolumes > 0
+        dailyVolumes = dailyVolumes[ nonzeroVolumes ]
+        totalTraded = np.sum( dailyVolumes )
+        numDays = dailyVolumes.size
+        
+        #if the item was never traded, we define it to have
+        #average volume of 0
+        if ( numDays == 0 ):
+            averageVolume = 0
+        else:
+            averageVolume = float( totalTraded ) / float( numDays )
+            
+        return [ stddevDaily , stddevChange , numTrendChanges , averageVolume ]
     
     '''
     Reads in and preprocesses all the item data from the file 
@@ -61,20 +124,12 @@ class Filter( object ):
     '''
     @staticmethod
     def init():
-        f = open( "price_data/item_stats" , "r" )
-        for line in f.readlines():
-            data = [ int(i) for i in line.split( "," ) ]
-            itemID = data[ 0 ]
-            priceRange = data[ 1 ] - data[ 2 ]
-            maxVolume = data[ 3 ]
-            
-            #item is never traded, so we automatically filter it out
-            if ( maxVolume == 0 ):
-                continue
-
-            newItem = ItemData( itemID , priceRange , maxVolume )
-            Filter.itemData.append( newItem )
-            Filter.itemDataMap[ itemID ] = newItem
+        DataManager.init()
+        for id in DataManager.idToName.keys():
+            priceData = DataManager.get_data_by_id( id )
+            features = Filter.get_feature_vector( priceData )
+            Filter.itemData.append( features )
+            Filter.itemDataMap[ id ] = features       
             
     '''
     Trains the logisitic classifier on the training data in
@@ -89,7 +144,7 @@ class Filter( object ):
             data = [int(i) for i in line.split( "," ) ]
             itemID = data[ 0 ]
             y = data[ 1 ]
-            trainingSetX.append( Filter.itemDataMap[ itemID ].to_array() )
+            trainingSetX.append( Filter.itemDataMap[ itemID ] )
             trainingSetY.append( y )
         
         Filter.logreg.fit( trainingSetX , trainingSetY )
@@ -101,7 +156,7 @@ class Filter( object ):
     '''
     @staticmethod
     def predict( itemId ):
-        return Filter.logreg.predict( Filter.itemDataMap[ itemId ].to_array() )
+        return Filter.logreg.predict( Filter.itemDataMap[ itemId ] )
         
 def main():
     Filter.init()        
