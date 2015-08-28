@@ -87,13 +87,13 @@ class VolatilityFilter( object ):
             
     '''
     Trains the logisitic classifier on the training data in
-    the file price_data/item_stats_train.
+    the file price_data/volatility_train.
     '''
     @staticmethod
     def train():
         trainingSetX = []
         trainingSetY = []
-        f = open( "price_data/item_stats_train" , "r" )
+        f = open( "price_data/volatility_train" , "r" )
         for line in f.readlines():
             data = [int(i) for i in line.split( "," ) ]
             itemID = data[ 0 ]
