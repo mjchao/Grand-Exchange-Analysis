@@ -4,6 +4,8 @@ Grand-Exchange-Analysis
 #Introduction
 When I was younger, I used to play a game called Runescape. It had a centralized trading platform called the Grand Exchange. Players (there are over 200 million registered accounts now according to Wikipedia) would submit buy and sell orders for most tradeable items in the game; back then, and like most people now, I produced goods and sold them for money through this platform. It's also obvious though, that the Grand Exchange functions somewhat like a stock market. There are several differences, but many claim that players can make a profit from trading on the Grand Exchange. In this project, I plan to obtain data for various items traded in the Grand Exchange and analyze the data. The goal is to look for trends and relationships over time and between related items in an attempt to better predict how prices will move; this will be a good opportunity to experiment with machine learning algorithms and gain a stronger understanding of the overall process from gathering data to final results.
 
+Please read Grand-Exchange-Analysis-Notes.pdf for more information.
+
 #Process
 There will be several steps to take in this project, and as I am a bit new to machine learning, I do not have an exact process outlined yet. I do know that I will need to
 
