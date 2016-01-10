@@ -118,8 +118,10 @@ def main():
     
     
     rankings = ProfitabilityRanker.get_profitability_rankings( 2000000 , 30 )
-    for i in range( 0 , 100 ):
-        print rankings[ i ][ 0 ].get_name(), ":" , rankings[ i ][ 1 ]
+    f = open( "trade_data/item_rankings.csv" , "w" )
+    for ranking in rankings:
+        f.write( str(ranking[ 0 ].get_name()) + "," + str(ranking[ 0 ].get_id()) + "," + str(ranking[ 1 ]) + "\n" )
+        
   
 '''      
 Team-4 cape : 23383320.7886
