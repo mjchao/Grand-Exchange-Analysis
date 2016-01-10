@@ -35,7 +35,7 @@ class ProfitabilityRanker( object ):
     Calculates the expected item profitability if we invest in this
     item optimally during the given time frame.
     
-    @param commodityId - the commodity in which to invest
+    @param data - the price data for a given commodity
     @param totalFunds - the amount of money to be invested
     @param duration - how long the money will be invested for at maximum,
                       as an integer number of days
@@ -44,15 +44,38 @@ class ProfitabilityRanker( object ):
               with the given amount of funds for the given duration
     '''
     @staticmethod
-    def get_item_profitability( commodityId , totalFunds , duration ):
-        data = PriceReader.get_price_data_from_csv( commodityId )
+    def get_item_profitability( data , totalFunds , duration ):
         datapoints = data.get_all_datapoints()
+
+        #use the average price data over the last 180 days to
+        #see if a given commodity changes trend enough to be
+        #profitable to trade on
+        averagePrices = []
+        for i in range(len(datapoints)-180 , len(datapoints)):    
+            averagePrices.append( datapoints[ i ].get_average180_price() )
+        averagePrices = np.array( averagePrices )
+        
+        #calculate number of trend reversals in the average price trends
+        differences = np.diff( averagePrices )
+        differences =  differences[ differences != 0 ]
+        isPositive = (differences > 0).astype( int )
+        isNegatve = (differences < 0).astype( int )
+        trends = (isPositive - isNegatve)
+        isTrendChange = (np.abs( np.diff( trends )) == 2)
+        trendChanges = np.sum( isTrendChange )
+
+        #if the trend rarely changes, the item probably has 
+        #a consistently falling price and we're not going
+        #to make any profit off that
+        if ( trendChanges <= 3 ):
+            return 0
+        
         
         #we exclude 0 volume datapoints because for some time, the
         #price database did not record volumes and they were reported
         #as 0. We don't want this to affect average volume
         volumes = np.array( [ x.get_volume() for x in datapoints if x.get_volume() != 0 ] )
-        averageVolume = np.mean( volumes ) if volumes.size > 0 else 0
+        averageVolume = np.mean( volumes )/2 if volumes.size > 0 else 0
         
         prices = np.array( [ x.get_price() for x in datapoints ] )
         daysOfData = prices.size
@@ -68,8 +91,44 @@ class ProfitabilityRanker( object ):
         return ProfitabilityRanker.__calculate_expected_profit__( averageVolume , \
                                 totalFunds , prices[-1] , averagePriceChange )
         
+    '''
+    Gets the profitability rankings of all known commodities, sorted in
+    descending order by profitability
+    
+    @param totalFunds - the total amount of gold with which to invest
+    @param duration - the maximum duration of the investment
+    @return - the profitability rankings
+    '''
+    @staticmethod
+    def get_profitability_rankings( totalFunds , duration ):
+        f = open( "price_data/item_ids" , 'r' )
+        rankings = []
+        for line in f.readlines():
+            commodityId = int(line.split( "," )[ 1 ])
+            data = PriceReader.get_price_data_from_csv( commodityId )
+            rankings.append( (data , ProfitabilityRanker.get_item_profitability( data , totalFunds , duration ) ) )
+            
+        rankings.sort( key=lambda x: -1*x[1] )
+        return rankings
+        
 
 def main():
-    print ProfitabilityRanker.get_item_profitability( 440 , 2000000 , 180 )
+    #data = PriceReader.get_price_data_from_csv( 5525 )
+    #print ProfitabilityRanker.get_item_profitability( data , 2000000 , 30 )
+    
+    
+    rankings = ProfitabilityRanker.get_profitability_rankings( 2000000 , 30 )
+    for i in range( 0 , 100 ):
+        print rankings[ i ][ 0 ].get_name(), ":" , rankings[ i ][ 1 ]
+  
+'''      
+Team-4 cape : 23383320.7886
+Mist rune : 17322152.9333
+Tiara : 17316149.626
+Lantern lens : 16341747.8883
+Basket : 11500876.9794
+Uncut opal : 10807575.7263
+Unblessed symbol : 10703217.1971
+'''
 
 if __name__ == "__main__" : main()
