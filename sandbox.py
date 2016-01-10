@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 #mithrilOreData = DataManager.get_data_by_date_range( "Mithril ore" , 2 , 2015 , 8 , 2015 )
 #coalData = DataManager.get_data_by_date_range( "Coal" , 2 , 2015 , 8 , 2015 )
 
+#DO NOT USE IF YOU ARE UPDATING DATA - ONLY USE IF YOU ARE DOWNLOADING FROM SCRATCH
 def download_data_by_id( id ):
     priceData = PriceCrawler.get_price_data_from_html( id )
     if ( priceData != None ):

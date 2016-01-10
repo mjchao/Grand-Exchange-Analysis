@@ -76,6 +76,11 @@ download all your data before you can analyze it.
 class DataManager( object ):
 
     '''
+    If the DataManager has been initialized yet
+    '''
+    initialized = False
+    
+    '''
     Maps integer object IDs to their commodity string names
     '''    
     idToName = {}
@@ -91,6 +96,11 @@ class DataManager( object ):
     '''
     @staticmethod
     def init():
+        
+        #don't initialize twice and waste time
+        if ( DataManager.initialized ):
+            return
+            
         f = open( "price_data/item_ids" )
         lines = f.readlines()
         for line in lines :
@@ -99,6 +109,7 @@ class DataManager( object ):
             objID = int( pairing[ 1 ] )
             DataManager.idToName[ objID ] = objName
             DataManager.nameToId[ objName.lower() ] = objID
+        DataManager.initialized = True
             
     '''
     Downloads the most recent data for the commodity with the given name
