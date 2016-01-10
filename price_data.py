@@ -252,6 +252,21 @@ class CommodityPriceData( object ):
         plt.xlabel( "t" )
         plt.ylabel( "Price" )
         plt.show()
+        
+    '''
+    Plots the trade volume of this commodity over time.
+    '''
+    def plot_volume_over_time( self ):
+        times = np.array( [ datetime.strptime( x.get_year() + "-" + \
+                    x.get_month() + "-" + x.get_day() , "%Y-%m-%d" ) \
+                    for x in self._datapoints ] )
+        volumes = np.array([ x.get_volume() for x in self._datapoints ])
+        plt.clf()
+        plt.plot( times , volumes , marker="o" )
+        plt.suptitle( self._name )
+        plt.xlabel( "t" )
+        plt.ylabel( "Volume" )
+        plt.show()
             
 def main():
     p1 = DataPoint( "2015" , "08" , "01" )
