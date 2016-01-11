@@ -17,5 +17,5 @@ There will be several steps to take in this project, and as I am a bit new to ma
 6. State any findings. 
 7. Go back to step 3 if the process was enjoyable :D .
 
-As of right now, step 1 is complete and I am currently procuring data about commodities on the Grand Exchange to determine which ones are promising to analyze. 
+As of right now, I have procured price data for about 2000 items and am experimenting with algorithms to determine which ones are promising to trade with.
 
