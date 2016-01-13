@@ -86,7 +86,7 @@ class DataManager( object ):
     idToName = {}
     
     '''
-    Maps string names of commodities to their integer object IDs
+    Maps lowercase string names of commodities to their integer object IDs
     '''
     nameToId = {}
     
