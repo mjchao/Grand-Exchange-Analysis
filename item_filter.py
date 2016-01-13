@@ -67,7 +67,7 @@ class ProfitabilityRanker( object ):
         #if the trend rarely changes, the item probably has 
         #a consistently falling price and we're not going
         #to make any profit off that
-        if ( trendChanges <= 3 ):
+        if ( trendChanges <= 5 ):
             return 0
         
         
@@ -78,15 +78,24 @@ class ProfitabilityRanker( object ):
         averageVolume = np.mean( volumes )/2 if volumes.size > 0 else 0
         
         prices = np.array( [ x.get_price() for x in datapoints ] )
-        daysOfData = prices.size
         
         #record the maximum profits we could make by starting investment
         #on a given day and clearing it within the specified duration
-        optimalPriceChanges = np.zeros( daysOfData-duration+1 )
-        for i in range( 0 , daysOfData-duration+1 ):
+        profitSum = 0
+        daysOfProfit = 0
+        for i in range( 0 , prices.size ):
             window = prices[ i:i+duration ]
-            optimalPriceChanges[ i ] = np.max( window ) - np.min( window )
-        averagePriceChange = np.mean( optimalPriceChanges )
+            buyPrice = window[ 0 ]
+            sellPrice = window[ 0 ]
+            for j in range( 0 , len(window) ):
+                if ( sellPrice < window[ j ] ):
+                    sellPrice = window[ j ]
+            bestProfit = sellPrice - buyPrice
+            if ( bestProfit > 0 ):
+                profitSum += bestProfit
+                daysOfProfit += 1
+                
+        averagePriceChange = profitSum / daysOfProfit if profitSum != 0 else 0
         
         return ProfitabilityRanker.__calculate_expected_profit__( averageVolume , \
                                 totalFunds , prices[-1] , averagePriceChange )
@@ -113,7 +122,9 @@ class ProfitabilityRanker( object ):
         
 
 def main():
-    #data = PriceReader.get_price_data_from_csv( 5525 )
+    
+    
+    #data = PriceReader.get_price_data_from_csv( 1038 )
     #print ProfitabilityRanker.get_item_profitability( data , 2000000 , 30 )
     
     
@@ -121,7 +132,7 @@ def main():
     f = open( "trade_data/item_rankings.csv" , "w" )
     for ranking in rankings:
         f.write( str(ranking[ 0 ].get_name()) + "," + str(ranking[ 0 ].get_id()) + "," + str(ranking[ 1 ]) + "\n" )
-        
+    #''' 
   
 '''      
 Team-4 cape : 23383320.7886
