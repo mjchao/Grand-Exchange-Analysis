@@ -66,6 +66,9 @@ def plot_price_by_name( commodityName ):
         print "Invalid commodity name."
         
 '''
+Plots the trade volume of a commodity over time
+
+@param commodityName - the name of a commodity
 '''
 def plot_volume_by_name( commodityName ):
     id = get_id_from_name( commodityName )
